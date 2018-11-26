@@ -132,7 +132,8 @@ func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	roots, err := ct.findToots(query)
 	if err != nil {
-		w.WriteHeader(503)
+		log.Printf("ERROR: Could not determine roots: %s", err)
+		w.WriteHeader(500)
 		return
 	}
 
@@ -140,12 +141,14 @@ func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Querying for comments for %s", query)
 		result.Comments, err = ct.getComments(roots[0])
 		if err != nil {
-			w.WriteHeader(503)
+			log.Printf("ERROR: Could not query comments: %s", err)
+			w.WriteHeader(500)
 			return
 		}
 		result.Stats, err = ct.getStatistics(roots[0])
 		if err != nil {
-			w.WriteHeader(503)
+			log.Printf("ERROR: Could not get statistics: %s", err)
+			w.WriteHeader(500)
 			return
 		}
 		result.Stats.Root = roots[0]
@@ -159,7 +162,8 @@ func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(result)
 
 	if err != nil {
-		w.WriteHeader(503)
+		log.Printf("ERROR: Could not marshal result: %s", err)
+		w.WriteHeader(500)
 		return
 	}
 
