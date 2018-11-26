@@ -1,14 +1,17 @@
 package main
 
-import _ "net/http/pprof"
-import "encoding/json"
-import "fmt"
-import "io/ioutil"
-import "log"
-import "net"
-import "net/http"
-import "os"
-import "time"
+import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net"
+	"net/http"
+	"net/http/fcgi"
+	"os"
+	"time"
+
+	"github.com/coreos/go-systemd/activation"
+)
 
 type Config struct {
 	URL   string `json:"url"`
@@ -18,30 +21,26 @@ type Config struct {
 func main() {
 	var config Config
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: tool <config file>")
-		os.Exit(1)
+		log.Panicf("Usage: tool <config file>")
 	}
-	// Open our jsonFile
+
 	jsonFile, err := os.Open(os.Args[1])
-	// if we os.Open returns an error then handle it
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Panicf("Could not open configuration file")
 	}
 
 	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+		log.Panicf("Could not read configuration file")
 	}
 	jsonFile.Close()
 
 	err = json.Unmarshal([]byte(byteValue), &config)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Panicf("Could not parse configuration file")
 	}
 
+	// Setup a custom http transport
 	transport := &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: 5 * time.Second,
@@ -53,7 +52,11 @@ func main() {
 	mastodon := Mastodon{Client: client, Url: config.URL, Token: config.Token}
 	ct := CommentTool{mastodon: mastodon}
 
-	http.HandleFunc("/search", ct.searchHandler)
+	listeners, err := activation.Listeners()
+	if len(listeners) != 1 {
+		log.Panicf("Expected one socket, received %d", len(listeners))
+	}
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(fcgi.Serve(listeners[0], http.HandlerFunc(ct.searchHandler)))
+
 }
