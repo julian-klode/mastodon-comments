@@ -1,0 +1,11 @@
+[Unit]
+Description=mastodon comment socket
+
+[Socket]
+ListenStream=/run/mastodon-comments.sock
+SocketUser=www-data
+SocketGroup=www-data
+SocketMode=600
+
+[Install]
+WantedBy = sockets.target

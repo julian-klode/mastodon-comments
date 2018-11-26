@@ -1,0 +1,17 @@
+[Unit]
+Description=mastodon comment server
+Requires=mastodon-comments.socket
+
+[Service]
+ExecStart=/usr/local/bin/mastodon-comments /etc/mastodon-comments.json
+DynamicUser=yes
+NoNewPrivileges=true
+PrivateDevices=true
+ProtectHome=yes
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RemoveIPC=true
