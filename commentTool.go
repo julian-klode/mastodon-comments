@@ -2,7 +2,6 @@ package main
 
 import _ "net/http/pprof"
 import "encoding/json"
-import "fmt"
 import "log"
 import "net/http"
 import "sync"
@@ -32,17 +31,13 @@ type Stats struct {
 }
 
 type Result struct {
-	Comments  map[string]Comment `json:"comments"`
-	TimeStamp time.Time          `json:"time_stamp"`
-	Elapsed   string             `json:"time_elapsed"`
-	Stats     Stats              `json:"stats"`
-	json      []byte
+	Comments map[string]Comment `json:"comments"`
+	Stats    Stats              `json:"stats"`
 }
 
 type CommentTool struct {
 	mastodon Mastodon
 	roots    sync.Map
-	comments sync.Map
 }
 
 func (ct *CommentTool) filterComments(statuses []Status, root string) map[string]Comment {
@@ -94,6 +89,8 @@ func (ct *CommentTool) findToots(query string) ([]string, error) {
 		return loaded.([]string), nil
 	}
 
+	log.Printf("Searching roots for %s", query)
+
 	searchResult, err := ct.mastodon.Search(query)
 	if err != nil {
 		return nil, err
@@ -125,30 +122,43 @@ func (ct *CommentTool) getStatistics(id string) (Stats, error) {
 func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
 	var result Result
 
-	start := time.Now()
 
 	query := r.FormValue("search")
-	untypedResult, ok := ct.comments.Load(query)
-	if ok {
-		result = untypedResult.(Result)
-		/* timeout handlign */
+
+	roots, err := ct.findToots(query)
+	if err != nil {
+		w.WriteHeader(503)
+		return
 	}
-	if !ok {
-		log.Println("Doing query")
-		roots, err := ct.findToots(query)
+
+	if len(roots) > 0 {
+		log.Printf("Querying for comments for %s", query)
+		result.Comments, err = ct.getComments(roots[0])
 		if err != nil {
-			log.Println("ERROR", err)
+			w.WriteHeader(503)
+			return
 		}
-		result.Comments, _ = ct.getComments(roots[0])
-		result.TimeStamp = time.Now()
-		result.Stats, _ = ct.getStatistics(roots[0])
+		result.Stats, err = ct.getStatistics(roots[0])
+		if err != nil {
+			w.WriteHeader(503)
+			return
+		}
 		result.Stats.Root = roots[0]
 		result.Stats.Replies = len(result.Comments)
-		result.Elapsed = fmt.Sprint(time.Since(start))
-		result.json, _ = json.Marshal(result)
-		ct.comments.Store(query, result)
+		w.Header().Set("Cache-Control", "max-age=600")
+	} else {
+		log.Printf("No roots found for %s", query)
+		w.Header().Set("Cache-Control", "max-age=60")
 	}
+
+	json, err := json.Marshal(result)
+
+	if err != nil {
+		w.WriteHeader(503)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(len(result.json)))
-	w.Write(result.json)
+	w.Header().Set("Content-Length", strconv.Itoa(len(json)))
+	w.Write(json)
 }
