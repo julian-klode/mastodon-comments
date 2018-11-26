@@ -2,6 +2,7 @@ package main
 
 import _ "net/http/pprof"
 import "encoding/json"
+import "path/filepath"
 import "log"
 import "net/http"
 import "strings"
@@ -123,11 +124,11 @@ func (ct *CommentTool) getStatistics(id string) (Stats, error) {
 func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
 	var result Result
 
-
 	query := r.FormValue("search")
 	if query == "" {
 		query = strings.TrimSuffix(r.URL.Path, "comments.json")
 	}
+	query = filepath.Clean(query)
 
 	roots, err := ct.findToots(query)
 	if err != nil {
