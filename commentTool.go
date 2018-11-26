@@ -4,6 +4,7 @@ import _ "net/http/pprof"
 import "encoding/json"
 import "log"
 import "net/http"
+import "strings"
 import "sync"
 import "time"
 import "strconv"
@@ -124,6 +125,9 @@ func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
 
 
 	query := r.FormValue("search")
+	if query == "" {
+		query = strings.TrimSuffix(r.URL.Path, "comments.json")
+	}
 
 	roots, err := ct.findToots(query)
 	if err != nil {
