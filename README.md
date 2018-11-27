@@ -47,3 +47,14 @@ The server accepts requests in two formats:
 2. If a `search` parameter is not provided, lookup is done based on the path, with the last path element being `comments.json`, for example:
 
    ```/path/to/my/blog/post/comments.json```
+
+## Status codes
+
+- 500 is returned if any error occured
+- 200 is returned otherwise, regardless of whether a toot exists or not
+
+## To do
+
+- Keep an on-disk cache of the list of root toots
+- Filter out queries for non-existing posts
+- AppArmor profile
