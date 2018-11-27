@@ -18,7 +18,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -46,16 +45,12 @@ func main() {
 		log.Fatalf("Could not open configuration file")
 	}
 
-	byteValue, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		log.Fatalf("Could not read configuration file")
-	}
-	jsonFile.Close()
-
-	err = json.Unmarshal([]byte(byteValue), &config)
+	err = json.NewDecoder(jsonFile).Decode(&config)
 	if err != nil {
 		log.Fatalf("Could not parse configuration file")
 	}
+
+	jsonFile.Close()
 
 	// Setup a custom http transport
 	transport := &http.Transport{
