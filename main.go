@@ -38,23 +38,23 @@ type Config struct {
 func main() {
 	var config Config
 	if len(os.Args) < 2 {
-		log.Panicf("Usage: tool <config file>")
+		log.Fatalf("Usage: tool <config file>")
 	}
 
 	jsonFile, err := os.Open(os.Args[1])
 	if err != nil {
-		log.Panicf("Could not open configuration file")
+		log.Fatalf("Could not open configuration file")
 	}
 
 	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		log.Panicf("Could not read configuration file")
+		log.Fatalf("Could not read configuration file")
 	}
 	jsonFile.Close()
 
 	err = json.Unmarshal([]byte(byteValue), &config)
 	if err != nil {
-		log.Panicf("Could not parse configuration file")
+		log.Fatalf("Could not parse configuration file")
 	}
 
 	// Setup a custom http transport
@@ -71,7 +71,7 @@ func main() {
 
 	listeners, err := activation.Listeners()
 	if len(listeners) != 1 {
-		log.Panicf("Expected one socket, received %d", len(listeners))
+		log.Fatalf("Expected one socket, received %d", len(listeners))
 	}
 
 	log.Fatal(fcgi.Serve(listeners[0], &ct))
