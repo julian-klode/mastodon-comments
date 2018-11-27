@@ -21,15 +21,16 @@
 
 package main
 
-import _ "net/http/pprof"
-import "encoding/json"
-import "path/filepath"
-import "log"
-import "net/http"
-import "strings"
-import "sync"
-import "time"
-import "strconv"
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+)
 
 type Author struct {
 	DisplayName string `json:"display_name"`

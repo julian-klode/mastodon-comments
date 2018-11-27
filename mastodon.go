@@ -16,12 +16,14 @@
  */
 package main
 
-import "fmt"
-import "encoding/json"
-import "time"
-import "io/ioutil"
-import "net/url"
-import "net/http"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"time"
+)
 
 type Account struct {
 	ID             string        `json:"id"`

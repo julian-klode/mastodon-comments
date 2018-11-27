@@ -30,8 +30,8 @@ import (
 )
 
 type Config struct {
-	URL   string `json:"url"`
-	Token string `json:"token"`
+	URL    string `json:"url"`
+	Token  string `json:"token"`
 	Userid string `json:"userid"`
 }
 
