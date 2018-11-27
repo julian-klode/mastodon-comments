@@ -74,6 +74,6 @@ func main() {
 		log.Panicf("Expected one socket, received %d", len(listeners))
 	}
 
-	log.Fatal(fcgi.Serve(listeners[0], http.HandlerFunc(ct.searchHandler)))
+	log.Fatal(fcgi.Serve(listeners[0], &ct))
 
 }

@@ -143,7 +143,7 @@ func (ct *CommentTool) getStatistics(id string) (Stats, error) {
 	return ct.filterStats(status), nil
 }
 
-func (ct *CommentTool) searchHandler(w http.ResponseWriter, r *http.Request) {
+func (ct *CommentTool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var result Result
 
 	query := r.FormValue("search")
