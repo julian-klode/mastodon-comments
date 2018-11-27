@@ -40,6 +40,7 @@ type Result struct {
 type CommentTool struct {
 	mastodon Mastodon
 	roots    sync.Map
+	userid   string
 }
 
 func (ct *CommentTool) filterComments(statuses []Status, root string) map[string]Comment {
@@ -79,7 +80,7 @@ func (ct *CommentTool) filterStats(status Status) Stats {
 func (ct *CommentTool) filterSearchResults(searchResult SearchResult) []string {
 	var result []string
 	for _, status := range searchResult.Statuses {
-		if status.InReplyToID == nil {
+		if status.InReplyToID == nil && (ct.userid == "" || status.Account.ID == ct.userid) {
 			result = append(result, status.ID)
 		}
 	}

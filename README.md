@@ -15,7 +15,8 @@ looks like this:
 ```json
 {
         "url": "https://mastodon.social",
-        "token": "<your api token here>"
+        "token": "<your api token here>",
+        "userid": "<your user id>", // optional, only look for the root for your account
 }
 ```
 
