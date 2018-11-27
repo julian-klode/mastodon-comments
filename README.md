@@ -3,6 +3,24 @@
 This implements a simple server that finds the first toot mentioning
 a query and all replies to that toot and returns it as json.
 
+This can be used to embed comments on a blog post: You can post a link
+to the blog post on your mastodon account, integrate some javascript
+into your webpage to talk to this server, and all replies to your
+post announcement toot magically appear on the blog post!
+
+
+## Integration
+The server accepts requests in two formats:
+
+1. The query is passed in a "search" query, for example:
+
+   ```<url>?search=/path/to/my/blog/post```
+
+2. If a `search` parameter is not provided, lookup is done based on the path, with the last path element being `comments.json`, for example:
+
+   ```/path/to/my/blog/post/comments.json```
+
+
 ## Configuration
 
 The comment server can only be started using systemd socket activation.
@@ -37,17 +55,6 @@ location ~ ^/2[0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/[^/]+/comments.json$ {
 The comment server sets a `cache-control` header to cache found comments
 for 10 minutes, and no comments for 1 minute, and nginx, if properly
 configured will respect that.
-
-## Integration
-The server accepts requests in two formats:
-
-1. The query is passed in a "search" query, for example:
-
-   ```<url>?search=/path/to/my/blog/post```
-
-2. If a `search` parameter is not provided, lookup is done based on the path, with the last path element being `comments.json`, for example:
-
-   ```/path/to/my/blog/post/comments.json```
 
 ## Status codes
 
