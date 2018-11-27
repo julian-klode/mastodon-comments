@@ -19,7 +19,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -128,12 +127,8 @@ func (m Mastodon) doRequest(method string, values url.Values, result interface{}
 	if err != nil {
 		return err
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
 
-	return json.Unmarshal(body, result)
+	return json.NewDecoder(resp.Body).Decode(result)
 }
 
 func (m Mastodon) Search(query string) (SearchResult, error) {
