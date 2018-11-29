@@ -1,0 +1,19 @@
+#include <tunables/global>
+
+/usr/local/bin/mastodon-comments flags=(attach_disconnected) {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+  #include <abstractions/ssl_certs>
+
+  # Go stuff
+  /proc/sys/net/core/somaxconn r,
+
+  # Config file and socket
+  /etc/mastodon-comments.json r,
+  /run/mastodon-comments.sock rw,
+
+  # Network streams
+  network unix stream,
+  network inet stream,
+  network inet6 stream,
+}
