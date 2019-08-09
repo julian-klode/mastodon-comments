@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Julian Andres Klode <jak@jak-linux.org>
+ * Copyright (c) 2018-2019 Julian Andres Klode <jak@jak-linux.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package main
 
 import (
@@ -28,14 +29,14 @@ import (
 	"github.com/coreos/go-systemd/activation"
 )
 
-type Config struct {
+type config struct {
 	URL    string `json:"url"`
 	Token  string `json:"token"`
 	Userid string `json:"userid"`
 }
 
 func main() {
-	var config Config
+	var config config
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: tool <config file>")
 	}
@@ -61,7 +62,7 @@ func main() {
 	}
 
 	client := &http.Client{Timeout: time.Second * 5, Transport: transport}
-	mastodon := Mastodon{Client: client, Url: config.URL, Token: config.Token}
+	mastodon := Mastodon{Client: client, URL: config.URL, Token: config.Token}
 	ct := CommentTool{mastodon: mastodon, userid: config.Userid}
 
 	listeners, err := activation.Listeners()

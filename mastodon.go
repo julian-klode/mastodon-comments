@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Julian Andres Klode <jak@jak-linux.org>
+ * Copyright (c) 2018-2019 Julian Andres Klode <jak@jak-linux.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package main
 
 import (
@@ -24,6 +25,7 @@ import (
 	"time"
 )
 
+// Account represents a mastodon account
 type Account struct {
 	ID             string        `json:"id"`
 	Username       string        `json:"username"`
@@ -49,6 +51,7 @@ type Account struct {
 	} `json:"fields"`
 }
 
+// Card represents a card, a preview of an external link
 type Card struct {
 	URL          string      `json:"url"`
 	Title        string      `json:"title"`
@@ -65,6 +68,7 @@ type Card struct {
 	EmbedURL     string      `json:"embed_url"`
 }
 
+// Status represents a single toot
 type Status struct {
 	ID                 string      `json:"id"`
 	CreatedAt          time.Time   `json:"created_at"`
@@ -100,26 +104,31 @@ type Status struct {
 	Card   Card          `json:"card"`
 }
 
+// StatusContext presents the replies to a given toot
 type StatusContext struct {
 	Descendants []Status `json:"descendants"`
 }
 
+// SearchResult is the result of Search()
 type SearchResult struct {
 	Hashtags []interface{} `json:"hashtags"`
 	Accounts []interface{} `json:"accounts"`
 	Statuses []Status      `json:"statuses"`
 }
 
+// Mastodon holds a mastodon session
 type Mastodon struct {
 	Client *http.Client
-	Url    string
-	Token  string
+	// The instance URL (e.g. https://mastodon.social/)
+	URL string
+	// The user's token for this app
+	Token string
 }
 
 func (m Mastodon) doRequest(method string, values url.Values, result interface{}) error {
-	url := fmt.Sprintf("%s/%s", m.Url, method)
+	url := fmt.Sprintf("%s/%s", m.URL, method)
 	if values != nil {
-		url = fmt.Sprintf("%s/%s?%s", m.Url, method, values.Encode())
+		url = fmt.Sprintf("%s/%s?%s", m.URL, method, values.Encode())
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Add("Authorization", fmt.Sprintf("bearer %s", m.Token))
@@ -131,6 +140,7 @@ func (m Mastodon) doRequest(method string, values url.Values, result interface{}
 	return json.NewDecoder(resp.Body).Decode(result)
 }
 
+// Search searches the instance for the given query (usually hashtags)
 func (m Mastodon) Search(query string) (SearchResult, error) {
 	var result SearchResult
 	err := m.doRequest("/api/v1/search", url.Values{
@@ -140,12 +150,15 @@ func (m Mastodon) Search(query string) (SearchResult, error) {
 	return result, err
 }
 
+// Statuses returns the status with the given id
 func (m Mastodon) Statuses(id string) (Status, error) {
 	var result Status
 	err := m.doRequest(fmt.Sprintf("/api/v1/statuses/%s", id), nil, &result)
 
 	return result, err
 }
+
+// StatusContext returns a StatusContext for the given status
 func (m Mastodon) StatusContext(id string) (StatusContext, error) {
 	var result StatusContext
 	err := m.doRequest(fmt.Sprintf("/api/v1/statuses/%s/context", id), nil, &result)

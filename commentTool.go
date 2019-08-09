@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Julian Andres Klode <jak@jak-linux.org>
+ * Copyright (c) 2018-2019 Julian Andres Klode <jak@jak-linux.org>
  *
  * Parts derived from the getcomment.php script provided in
  * https://gitlab.com/BeS/hugo-sustain-ng/ which is
@@ -32,33 +32,40 @@ import (
 	"time"
 )
 
+// Author is a person on mastodon
 type Author struct {
 	DisplayName string `json:"display_name"`
 	Avatar      string `json:"avatar"`
-	Url         string `json:"url"`
+	URL         string `json:"url"`
 }
+
+// Comment is a reply a person made to a toot
 type Comment struct {
 	Author  Author    `json:"author"`
 	Toot    string    `json:"toot"`
 	Date    time.Time `json:"date"`
-	Url     string    `json:"url"`
+	URL     string    `json:"url"`
 	ReplyTo *string   `json:"reply_to"`
 	Root    string    `json:"root"`
 }
 
+// Stats holds statistics about a toot
 type Stats struct {
 	Reblogs int    `json:"reblogs"`
 	Favs    int    `json:"favs"`
 	Replies int    `json:"replies"`
-	Url     string `json:"url"`
+	URL     string `json:"url"`
 	Root    string `json:"root"`
 }
 
+// Result is the representation of comments for a given toot that
+// CommentTool will serve in response to an http request.
 type Result struct {
 	Comments map[string]Comment `json:"comments"`
 	Stats    Stats              `json:"stats"`
 }
 
+// CommentTool is an HTTP service
 type CommentTool struct {
 	mastodon Mastodon
 	roots    sync.Map
@@ -76,11 +83,11 @@ func (ct *CommentTool) filterComments(statuses []Status, root string) map[string
 			Author: Author{
 				DisplayName: name,
 				Avatar:      status.Account.AvatarStatic,
-				Url:         status.Account.URL,
+				URL:         status.Account.URL,
 			},
 			Toot:    status.Content,
 			Date:    status.CreatedAt,
-			Url:     status.URI,
+			URL:     status.URI,
 			ReplyTo: status.InReplyToID,
 			Root:    root,
 		}
@@ -95,7 +102,7 @@ func (ct *CommentTool) filterStats(status Status) Stats {
 		Reblogs: status.ReblogsCount,
 		Favs:    status.FavouritesCount,
 		Replies: status.RepliesCount,
-		Url:     status.URL,
+		URL:     status.URL,
 	}
 }
 
