@@ -1,0 +1,11 @@
+dist: bionic
+language: go
+install:
+  - curl https://pre-commit.com/install-local.py | python3 -
+jobs:
+  include:
+    - name: pre-commit
+      script:
+      - go get golang.org/x/lint/golint
+      - go get .
+      - pre-commit run -a
