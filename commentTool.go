@@ -107,10 +107,10 @@ func (ct *CommentTool) filterStats(status Status) Stats {
 	}
 }
 
-func (ct *CommentTool) filterSearchResults(searchResult SearchResult) []string {
+func (ct *CommentTool) filterSearchResults(searchResult SearchResult, query string) []string {
 	var result []string
 	for _, status := range searchResult.Statuses {
-		if status.InReplyToID == nil && (ct.userid == "" || status.Account.ID == ct.userid) {
+		if status.InReplyToID == nil && (ct.userid == "" || status.Account.ID == ct.userid) && strings.Contains(status.Content, query) {
 			result = append(result, status.ID)
 		}
 	}
@@ -133,7 +133,7 @@ func (ct *CommentTool) findToots(query string) ([]string, error) {
 		return nil, err
 	}
 
-	result := ct.filterSearchResults(searchResult)
+	result := ct.filterSearchResults(searchResult, query)
 	ct.roots.Store(query, result)
 	return result, nil
 }
