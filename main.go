@@ -38,8 +38,8 @@ type config struct {
 
 func main() {
 	var config config
-	if len(os.Args) < 2 {
-		log.Fatalf("Usage: tool <config file>")
+	if len(os.Args) < 3 {
+		log.Fatalf("Usage: tool <config file> <state file>")
 	}
 
 	jsonFile, err := os.Open(os.Args[1])
@@ -64,7 +64,12 @@ func main() {
 
 	client := &http.Client{Timeout: time.Second * 5, Transport: transport}
 	mastodon := Mastodon{Client: client, URL: config.URL, Token: config.Token}
-	ct := CommentTool{mastodon: mastodon, overrides: config.Overrides, userid: config.Userid}
+	ct := CommentTool{
+		mastodon:  mastodon,
+		overrides: config.Overrides,
+		userid:    config.Userid,
+		roots:     LoadState(os.Args[2]),
+	}
 
 	listeners, err := activation.Listeners()
 	if len(listeners) != 1 {

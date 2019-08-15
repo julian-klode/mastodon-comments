@@ -3,7 +3,7 @@ Description=mastodon comment server
 Requires=mastodon-comments.socket
 
 [Service]
-ExecStart=/usr/local/bin/mastodon-comments /etc/mastodon-comments.json
+ExecStart=/usr/local/bin/mastodon-comments /etc/mastodon-comments.json /var/lib/private/mastodon-comments/state.json
 DynamicUser=yes
 NoNewPrivileges=true
 PrivateDevices=true
@@ -15,3 +15,4 @@ RestrictNamespaces=true
 LockPersonality=true
 MemoryDenyWriteExecute=true
 RemoveIPC=true
+StateDirectory=mastodon-comments

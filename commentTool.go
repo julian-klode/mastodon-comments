@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -65,11 +66,79 @@ type Result struct {
 	Stats    Stats              `json:"stats"`
 }
 
+// State contains all the roots we know about
+type State struct {
+	Roots    map[string][]string `json:"roots"`
+	mutex    sync.RWMutex
+	filename string
+}
+
+// LoadState loads the roots database
+func LoadState(filename string) *State {
+	state := &State{Roots: make(map[string][]string), filename: filename}
+	jsonFile, err := os.Open(state.filename)
+	if err == nil {
+		defer jsonFile.Close()
+
+		err = json.NewDecoder(jsonFile).Decode(state)
+		if err != nil {
+			log.Printf("Could not decode roots file: %s", err)
+		}
+	} else {
+		log.Printf("Could not open roots file: %s", err)
+	}
+	return state
+}
+
+// Get looks up a specific key
+func (state *State) Get(key string) ([]string, bool) {
+	state.mutex.RLock()
+	value, ok := state.Roots[key]
+	state.mutex.RUnlock()
+	return value, ok
+}
+
+// Put puts in a key and causes a writeout
+func (state *State) Put(key string, value []string) {
+	state.mutex.Lock()
+	state.Roots[key] = value
+	state.mutex.Unlock()
+
+	go state.writeout()
+}
+
+// writeout writes the file back
+func (state *State) writeout() {
+	state.mutex.RLock()
+	defer state.mutex.RUnlock()
+
+	log.Println("Writing root state")
+
+	jsonFile, err := os.Create(state.filename + ".new")
+	if err != nil {
+		log.Printf("Could not open state file: %s", err)
+		return
+	}
+	defer jsonFile.Close()
+
+	err = json.NewEncoder(jsonFile).Encode(state)
+	if err != nil {
+		log.Printf("Could not write state file: %s", err)
+		return
+	}
+
+	jsonFile.Close()
+	if err := os.Rename(jsonFile.Name(), state.filename); err != nil {
+		log.Printf("Could not commit state file: %s", err)
+		return
+	}
+}
+
 // CommentTool is an HTTP service
 type CommentTool struct {
 	mastodon  Mastodon
 	overrides map[string]string
-	roots     sync.Map
+	roots     *State
 	userid    string
 }
 
@@ -118,12 +187,8 @@ func (ct *CommentTool) filterSearchResults(searchResult SearchResult, query stri
 }
 
 func (ct *CommentTool) findToots(query string) ([]string, error) {
-	if override, ok := ct.overrides[query]; ok {
-		log.Printf("Overriden root for %s to %s", query, override)
-		return []string{override}, nil
-	}
-	if loaded, ok := ct.roots.Load(query); ok {
-		return loaded.([]string), nil
+	if loaded, ok := ct.roots.Get(query); ok {
+		return loaded, nil
 	}
 
 	log.Printf("Searching roots for %s", query)
@@ -134,7 +199,7 @@ func (ct *CommentTool) findToots(query string) ([]string, error) {
 	}
 
 	result := ct.filterSearchResults(searchResult, query)
-	ct.roots.Store(query, result)
+	ct.roots.Put(query, result)
 	return result, nil
 }
 

@@ -11,6 +11,8 @@
   # Config file and socket
   /etc/mastodon-comments.json r,
   /run/mastodon-comments.sock rw,
+  /var/lib/private/mastodon-comments/state.json rw,
+  /var/lib/private/mastodon-comments/state.json.new rw,
 
   # Network streams
   network unix stream,
