@@ -30,9 +30,10 @@ import (
 )
 
 type config struct {
-	URL    string `json:"url"`
-	Token  string `json:"token"`
-	Userid string `json:"userid"`
+	URL       string            `json:"url"`
+	Token     string            `json:"token"`
+	Userid    string            `json:"userid"`
+	Overrides map[string]string `json:"overrides"`
 }
 
 func main() {
@@ -63,7 +64,7 @@ func main() {
 
 	client := &http.Client{Timeout: time.Second * 5, Transport: transport}
 	mastodon := Mastodon{Client: client, URL: config.URL, Token: config.Token}
-	ct := CommentTool{mastodon: mastodon, userid: config.Userid}
+	ct := CommentTool{mastodon: mastodon, overrides: config.Overrides, userid: config.Userid}
 
 	listeners, err := activation.Listeners()
 	if len(listeners) != 1 {

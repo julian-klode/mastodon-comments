@@ -67,9 +67,10 @@ type Result struct {
 
 // CommentTool is an HTTP service
 type CommentTool struct {
-	mastodon Mastodon
-	roots    sync.Map
-	userid   string
+	mastodon  Mastodon
+	overrides map[string]string
+	roots     sync.Map
+	userid    string
 }
 
 func (ct *CommentTool) filterComments(statuses []Status, root string) map[string]Comment {
@@ -117,6 +118,10 @@ func (ct *CommentTool) filterSearchResults(searchResult SearchResult) []string {
 }
 
 func (ct *CommentTool) findToots(query string) ([]string, error) {
+	if override, ok := ct.overrides[query]; ok {
+		log.Printf("Overriden root for %s to %s", query, override)
+		return []string{override}, nil
+	}
 	if loaded, ok := ct.roots.Load(query); ok {
 		return loaded.([]string), nil
 	}
