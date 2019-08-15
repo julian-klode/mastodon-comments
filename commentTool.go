@@ -136,10 +136,9 @@ func (state *State) writeout() {
 
 // CommentTool is an HTTP service
 type CommentTool struct {
-	mastodon  Mastodon
-	overrides map[string]string
-	roots     *State
-	userid    string
+	mastodon Mastodon
+	roots    *State
+	userid   string
 }
 
 func (ct *CommentTool) filterComments(statuses []Status, root string) map[string]Comment {
