@@ -26,7 +26,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/coreos/go-systemd/activation"
+	"github.com/coreos/go-systemd/v22/activation"
 )
 
 type config struct {
